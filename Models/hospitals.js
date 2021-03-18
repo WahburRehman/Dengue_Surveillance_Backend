@@ -1,0 +1,32 @@
+const mongoose = require('mongoose');
+
+const hospital = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    email: {
+        type: String,
+        unique: true
+    },
+    city: {
+        type: String,
+        required: true
+    },
+    address: {
+        type: String,
+        required: true
+    },
+    contactNo: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    status: {
+        type: String,
+        default: "Active"
+    }
+});
+
+mongoose.model('hospital', hospital);
