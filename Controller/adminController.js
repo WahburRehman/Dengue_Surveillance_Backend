@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const admins = mongoose.model('admin');
+const admin = mongoose.model('admin');
 
 const sendMail = require('../MiddleWares/sendMail');
 
@@ -30,6 +30,7 @@ exports.addAdmin = (req, res, next) => {
             status: req.body.status,
             dp: imagePath
         });
+        console.log('??')
         addAdmin
             .save()
             .then(result => {
@@ -45,6 +46,7 @@ exports.addAdmin = (req, res, next) => {
                 res.json({ error: error });
             })
     } catch (error) {
-        res.status(500).json({ error: error });
+        console.log(error)
+        res.status(500).send(error);
     }
 }

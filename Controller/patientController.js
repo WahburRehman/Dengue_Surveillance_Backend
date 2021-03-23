@@ -26,3 +26,61 @@ exports.addPatient = (req, res, next) => {
         res.status(500).json({ Error: error });
     }
 };
+
+exports.fetchAllPatients = (req, res, next) => {
+
+    try {
+        patient.find({}, (error, data) => {
+            if (error) {
+                console.log(error);
+                return res.json({ error: error });
+            }
+            else {
+                if (data.length === 0) {
+                    console.log('data length', data.length);
+                    res.send(data);
+                }
+                else {
+                    console.log(data);
+                    res.send(data);
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.findRecord = (req, res, next) => {
+    console.log(req.body.userName);
+    try {
+        patient.findOne({ userName: req.body.userName }, (error, data) => {
+            if (error) {
+                console.log(error);
+                res.send(error);
+            } else {
+                console.log(data)
+                res.send(data);
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.deleteRecord = (req, res, next) => {
+    console.log(req.body.userName);
+    try {
+        patient.deleteOne({ userName: req.body.userName }, (error, data) => {
+            if (error) {
+                console.log(error);
+                res.send(error);
+            } else {
+                console.log(data)
+                res.json({ message: 'record deleted Successfully' });
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};

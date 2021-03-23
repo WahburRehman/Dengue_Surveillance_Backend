@@ -57,6 +57,7 @@ const admin = new mongoose.Schema({
 
 
 admin.pre('save', function (next) {
+    console.log('pre save')
     const user = this;
     if (!user.isModified('password')) {
         return next();

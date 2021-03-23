@@ -17,37 +17,53 @@ app.use((req, res, next) => {
 
 
 // MODELS
-require('./Models/healthWorkers');
-require('./Models/patients');
-require('./Models/doctors');
-require('./Models/hospitals');
-require('./Models/dispensaries');
 require('./Models/admin');
+require('./Models/dispensaries');
+require('./Models/doctors');
+require('./Models/healthWorkers');
+require('./Models/hospitals');
+require('./Models/patients');
+require('./Models/researchers')
+
+
+
+
 
 //MIDDLEWARES
 const verify = require('./MiddleWares/verify');
 
 // ROUTES IMPORTS
+const adminRoutes = require('./Routes/adminRoutes');
+app.use(adminRoutes);
+
 const authRoutes = require('./Routes/authRoutes');
 app.use(authRoutes);
 
 const doctorRoutes = require('./Routes/doctorRoutes');
 app.use(doctorRoutes);
 
+const dispensaryRoutes = require('./Routes/dispensaryRoutes');
+app.use(dispensaryRoutes);
+
 const healthWorkerRoutes = require('./Routes/healthWorkerRoutes');
 app.use(healthWorkerRoutes);
-
-const patientRoutes = require('./Routes/patientRoutes');
-app.use(patientRoutes);
 
 const hospitalRoutes = require('./Routes/hospitalRoutes');
 app.use(hospitalRoutes);
 
-const dispensaryRoutes = require('./Routes/dispensaryRoutes');
-app.use(dispensaryRoutes);
+const patientRoutes = require('./Routes/patientRoutes');
+app.use(patientRoutes);
 
-const adminRoutes = require('./Routes/adminRoutes');
-app.use(adminRoutes);
+const researcherRoutes = require('./Routes/researcherRoutes');
+app.use(researcherRoutes);
+
+
+
+
+
+
+
+
 
 
 

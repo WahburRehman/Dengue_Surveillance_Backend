@@ -18,5 +18,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.post('/addDoctor', doctorController.addDoctor);
+router.get('/fetchAllDoctors', doctorController.fetchAllDoctors);
+router.post('/findOneDoctorsRecord', doctorController.findRecord);
+router.delete('/deleteOneDoctorsRecord', doctorController.deleteRecord);
 
 module.exports = router;

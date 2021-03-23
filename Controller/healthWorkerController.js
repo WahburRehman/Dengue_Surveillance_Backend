@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
+const fs = require('fs');
 const healthWorker = mongoose.model('healthWorker');
 
 const sendMail = require('../MiddleWares/sendMail');
 
 
 exports.addHealthWorker = (req, res, next) => {
-    const imagePath = 'images/healthWorkersDp/healthWorkersDp.png';
+    
+    let imagePath = 'images/healthWorkersDp/avatar.jpeg';
 
     console.log('received req body: ', req.body);
 
@@ -17,18 +19,18 @@ exports.addHealthWorker = (req, res, next) => {
 
     try {
         const addHealthWorker = new healthWorker({
-            name: req.body.name,
-            userName: req.body.userName,
-            email: req.body.email,
+            name: req.body.name.toUpperCase(),
+            userName: req.body.userName.toUpperCase(),
+            email: req.body.email.toUpperCase(),
             password: req.body.password,
+            gender: req.body.gender.toUpperCase(),
             dob: req.body.dob,
-            gender: req.body.gender,
             cnic: req.body.cnic,
             contactNo: req.body.contactNo,
-            city: req.body.city,
-            dispensary: req.body.instituteName,
+            city: req.body.city.toUpperCase(),
+            dispensary: req.body.instituteName.toUpperCase(),
             joiningDate: req.body.joiningDate,
-            status: req.body.status,
+            status: req.body.status.toUpperCase(),
             dp: imagePath
         });
         addHealthWorker
@@ -49,3 +51,75 @@ exports.addHealthWorker = (req, res, next) => {
         res.status(500).json({ error: error });
     }
 }
+
+exports.fetchAllHealthWorkers = (req, res, next) => {
+
+    try {
+        healthWorker.find({}, (error, data) => {
+            if (error) {
+                console.log(error);
+                return res.json({ error: error });
+            }
+            else {
+                if (data.length === 0) {
+                    console.log('data length', data.length);
+                    res.send(data);
+                }
+                else {
+                    console.log(data);
+                    res.send(data);
+                }
+            }
+        }).catch(error => {
+            console.log(error);
+            res.send(error);
+        })
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.findRecord = (req, res, next) => {
+    console.log(req.body.userName);
+    let imagePath = null;
+    try {
+        healthWorker.findOne({ userName: req.body.userName.toUpperCase() }, (error, data) => {
+            if (error) {
+                console.log(error);
+                res.send(error);
+            } else {
+                console.log(data)
+                imagePath = data.dp;
+                let image = fs.readFileSync(imagePath);
+                let encodedImage = image.toString('base64');
+                data.dp = encodedImage;
+                res.send(data);
+            }
+        }).catch(error => {
+            console.log(error);
+            res.send(error);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.deleteRecord = (req, res, next) => {
+    console.log(req.body.userName);
+    try {
+        healthWorker.deleteOne({ userName: req.body.userName.toUpperCase() }, (error, data) => {
+            if (error) {
+                console.log(error);
+                res.send(error);
+            } else {
+                console.log(data)
+                res.json({ message: 'record deleted Successfully' });
+            }
+        }).catch(error => {
+            console.log(error);
+            res.send(error);
+        })
+    } catch (error) {
+        console.log(error);
+    }
+};

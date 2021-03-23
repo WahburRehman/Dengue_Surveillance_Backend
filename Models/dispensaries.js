@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const dispensary = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     email: {
         type: String,

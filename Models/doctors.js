@@ -6,7 +6,7 @@ const passwordEndDec = require('../MiddleWares/passwordEncryptionDecryption');
 const doctor = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     userName: {
         type: String,
