@@ -10,6 +10,8 @@ exports.addResearcher = (req, res, next) => {
 
     let imagePath = 'images/researchersDp/avatar.jpeg';
 
+    const subject = 'Dengue Surveillance And Data Collection System';
+
     const msg = "<strong>ASSALAM-O-ALAIKUM!</strong><br><p>Dear " + req.body.name + ", You have successfully added in <strong>Dengue Surveillance And Data Collection System</strong>."
         + " You can log in into the system using the username: " + req.body.userName +
         " and password: " + req.body.password + ". Your user name is constant and cannot be changed."
@@ -35,12 +37,12 @@ exports.addResearcher = (req, res, next) => {
             .save()
             .then(result => {
                 console.log(result)
-                sendMail.sendMail(req.body.email, msg);
-                res.status(200).json({ message: 'Researcher Added Successfully!!'});
+                sendMail.sendMail(req.body.email, msg, subject);
+                res.status(200).json({ message: 'Researcher Added Successfully!!' });
             }).catch(error => {
                 if (error.name === 'MongoError' && error.code === 11000) {
                     console.log(error.keyValue);
-                    return res.json({ error: 'User Already Exist!!'});
+                    return res.json({ error: 'User Already Exist!!' });
                 }
                 console.log(error)
                 res.status(200).json({ error: error });
@@ -79,9 +81,9 @@ exports.fetchAllResearchers = (req, res, next) => {
 };
 
 exports.findRecord = (req, res, next) => {
-    console.log(req.body.userName);
+    console.log(req.body.id);
     try {
-        researcher.findOne({ userName: req.body.userName.toUpperCase() }, (error, data) => {
+        researcher.findOne({ _id: req.body.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
@@ -104,9 +106,9 @@ exports.findRecord = (req, res, next) => {
 
 
 exports.deleteRecord = (req, res, next) => {
-    console.log(req.body.userName);
+    console.log(req.body.id);
     try {
-        researcher.deleteOne({ userName: req.body.userName.toUpperCase() }, (error, data) => {
+        researcher.deleteOne({ _id: req.body.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
@@ -118,6 +120,46 @@ exports.deleteRecord = (req, res, next) => {
             console.log(error);
             res.send(error);
         })
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+
+exports.updateRecord = (req, res, next) => {
+    console.log('req body: ', req.body);
+    //$2b$10$6eyvlsBvbu/OypBb95mKs.62k38pnrAe/Hb8AyHyDqgP2gXKVqcky
+    //$2b$10$3szsLk5CZ6/7NGrakoP/Ye9GXTAq/oqK1mBUz12E6W2JxR9OzCrYa
+    // console.log(req.body);
+    try {
+        healthWorker.findOne({ _id: req.body.id })
+            .then(user => {
+
+                user.name = req.body.name.toUpperCase(),
+                    user.userName = req.body.userName.toUpperCase(),
+                    user.email = req.body.email.toUpperCase(),
+                    user.password = user.password,
+                    user.gender = req.body.gender.toUpperCase(),
+                    user.dob = req.body.dob,
+                    user.cnic = req.body.cnic,
+                    user.contactNo = req.body.contactNo,
+                    user.city = req.body.city.toUpperCase(),
+                    user.joiningDate = req.body.joiningDate,
+                    user.status = req.body.status.toUpperCase(),
+                    user.dp = user.dp
+                user
+                    .save()
+                    .then(result => {
+                        console.log('result: ', result)
+                        res.status(200).json({ message: 'Data Updated Successfully!!' });
+                    }).catch(error => {
+                        console.log(error);
+                        res.status(400).json({ error: 'Data Could Not Be Updated!!' });
+                    })
+            }).catch(error => {
+                console.log(error);
+                res.status(400).json({ error: error });
+            })
     } catch (error) {
         console.log(error);
     }

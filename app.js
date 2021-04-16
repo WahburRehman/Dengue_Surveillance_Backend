@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 // BODY PARSER
 app.use(bodyParser.json());
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', '*',);
     res.setHeader(
         'Access-Control-Allow-Methods',
         'OPTIONS, GET, POST, PUT, PATCH, DELETE'
@@ -23,7 +23,9 @@ require('./Models/doctors');
 require('./Models/healthWorkers');
 require('./Models/hospitals');
 require('./Models/patients');
-require('./Models/researchers')
+require('./Models/researchers');
+require('./Models/reports');
+require('./Models/requests');
 
 
 
@@ -57,6 +59,11 @@ app.use(patientRoutes);
 const researcherRoutes = require('./Routes/researcherRoutes');
 app.use(researcherRoutes);
 
+const reportRoutes = require('./Routes/reportRoutes');
+app.use(reportRoutes);
+
+const requestRoutes = require('./Routes/requestRoutes');
+app.use(requestRoutes);
 
 
 

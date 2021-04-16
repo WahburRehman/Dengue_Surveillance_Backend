@@ -1,36 +1,34 @@
 const mongoose = require('mongoose');
 
-const hospital = new mongoose.Schema({
-    name: {
+const report = new mongoose.Schema({
+    subject: {
         type: String,
         required: true,
-        unique: true
     },
-    email: {
+    reportMessage: {
         type: String,
-        unique: true
+        required: true,
     },
-    city: {
+    reporterName: {
+        type: String,
+        required: true,
+    },
+    reporterID: {
+        type: String,
+        required: true,
+    },
+    reporterRole: {
+        type: String,
+        required: true,
+    },
+    reportStatus: {
         type: String,
         required: true
     },
-    address: {
-        type: String,
-        required: true
-    },
-    contactNo: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    status: {
-        type: String,
-        default: "Active"
-    },
-    joiningDate: {
+    date: {
         type: String,
         required: true
     }
 });
 
-mongoose.model('hospital', hospital);
+mongoose.model('report', report);

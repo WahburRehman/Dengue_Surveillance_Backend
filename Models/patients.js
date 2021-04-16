@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const patient = new mongoose.Schema({
+    caseID: {
+        type: String,
+        required: true,
+        unique: true
+    },
     name: {
         type: String,
         required: true
@@ -14,19 +19,15 @@ const patient = new mongoose.Schema({
         type: Number,
         required: true
     },
-    monthYear: {
-        type: String,
-        required: true
-    },
     phNo: {
         type: String,
-        required: true
+        required: true,
     },
-    city: {
+    district: {
         type: String,
         required: true
     },
-    address: {
+    homeTown: {
         type: String,
         required: true
     },
@@ -42,51 +43,25 @@ const patient = new mongoose.Schema({
         type: String,
         required: true
     },
-    dispensaryName: {
+    dispensary: {
         type: String,
         required: true
     },
+    caseStatus: {
+        type: String,
+        required: true
+    },
+    symptoms: {
+        type: String,
+        required: true
+    },
+    symptomsImage: {
+        type: String,
+    },
     date: {
-        type: Date,
-        default: Date.now
+        type: String
     }
 });
-
-
-patient.pre('save', function (next) {
-    const user = this;
-    if (!user.isModified('password')) {
-        return next();
-    }
-    bcrypt.genSalt(10, (error, salt) => {
-        if (error) {
-            return next(error);
-        }
-        bcrypt.hash(user.password, salt, (error, hash) => {
-            if (error) {
-                return next(error);
-            }
-            user.password = hash;
-            next();
-        });
-    });
-});
-
-
-patient.methods.comparePassword = function (candidatePassword) {
-    return new Promise((resolve, reject) => {
-        const user = this;
-        bcrypt.compare(candidatePassword, user.password, (error, isMatch) => {
-            if (error) {
-                return reject(error)
-            }
-            if (!isMatch) {
-                return reject(error)
-            }
-            resolve(true);
-        });
-    });
-}
 
 
 mongoose.model('patient', patient);

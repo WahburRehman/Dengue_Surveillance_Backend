@@ -20,5 +20,7 @@ router.post('/addHealthWorker', healthWorkerController.addHealthWorker);
 router.get('/fetchAllHealthWorkers', healthWorkerController.fetchAllHealthWorkers);
 router.post('/findOneHealthWorkersRecord', healthWorkerController.findRecord);
 router.delete('/deleteOneHealthWorkersRecord', healthWorkerController.deleteRecord);
+router.put('/updateOneHealthWorkersRecord', healthWorkerController.updateRecord);
+router.put('/updateHealthWorkerProfile', upload.single("dp"), healthWorkerController.updateProfile);
 
 module.exports = router;

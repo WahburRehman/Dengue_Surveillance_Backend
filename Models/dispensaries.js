@@ -26,6 +26,10 @@ const dispensary = new mongoose.Schema({
     status: {
         type: String,
         default: "Active"
+    },
+    joiningDate: {
+        type: String,
+        required: true
     }
 });
 

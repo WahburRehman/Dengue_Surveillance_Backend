@@ -2,11 +2,11 @@ const keys = require('../keys');
 const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(keys.sendGridKey);
 
-exports.sendMail = (to, msg) => {
+exports.sendMail = (to, msg, subject) => {
     const mail = {
         to: to,
         from: 'fypakount@gmail.com', // Change to your verified sender
-        subject: 'Dengue Surveillance And Data Collection System',
+        subject: subject,
         text: '??',
         html: msg,
     }

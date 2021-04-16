@@ -21,5 +21,6 @@ router.post('/addDoctor', doctorController.addDoctor);
 router.get('/fetchAllDoctors', doctorController.fetchAllDoctors);
 router.post('/findOneDoctorsRecord', doctorController.findRecord);
 router.delete('/deleteOneDoctorsRecord', doctorController.deleteRecord);
+router.put('/updateOneDoctorsRecord', doctorController.updateRecord);
 
 module.exports = router;
