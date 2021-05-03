@@ -60,35 +60,51 @@ exports.fetchAllHospitals = (req, res, next) => {
     }
     else {
         try {
-            hospital.find({}, (error, data) => {
-                if (error) {
-                    console.log(error);
-                    return res.json({ error: error });
-                }
-                else {
-                    if (data.length === 0) {
-                        console.log('data length', data.length);
-                        res.send(data);
+            hospital.find({}).sort({ _id: -1 })
+                .then(result => {
+                    if (result.length === 0) {
+                        console.log('data length', result.length);
+                        res.send({ message: 'hospitals not found!!' });
                     }
                     else {
-                        console.log(data);
-                        res.send(data);
+                        console.log(result);
+                        res.send(result);
                     }
-                }
-            }).catch(error => {
-                console.log(error);
-                res.send(error);
-            })
+                }).catch(error => {
+                    console.log(error)
+                    res.status(400).json({ error: 'error' });
+                });
         } catch (error) {
             console.log(error);
         }
     }
 };
 
-exports.findRecord = (req, res, next) => {
-    console.log(req.body.id);
+exports.fetchAllhospitalsNames = (req, res, next) => {
     try {
-        hospital.findOne({ _id: req.body.id }, (error, data) => {
+        hospital.find({}, { name: 1, _id: 0 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'Hospitals not found!!' });
+                }
+                else {
+                    console.log(result);
+                    res.send(result);
+                }
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+exports.findRecord = (req, res, next) => {
+    console.log(req.query.id);
+    try {
+        hospital.findOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
@@ -106,9 +122,9 @@ exports.findRecord = (req, res, next) => {
 };
 
 exports.deleteRecord = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        hospital.deleteOne({ _id: req.body.id }, (error, data) => {
+        hospital.deleteOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.json({ error: error });

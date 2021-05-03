@@ -8,7 +8,6 @@ const hospital = new mongoose.Schema({
     },
     email: {
         type: String,
-        unique: true
     },
     city: {
         type: String,

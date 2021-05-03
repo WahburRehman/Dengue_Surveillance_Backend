@@ -4,11 +4,10 @@ const doctor = mongoose.model('doctor');
 
 const sendMail = require('../MiddleWares/sendMail');
 
+// %SFQ@tI
 exports.addDoctor = (req, res, next) => {
 
     console.log(req.body);
-
-
     let imagePath = 'images/doctorsDp/avatar.jpeg';
 
     const subject = 'Dengue Surveillance And Data Collection System';
@@ -54,40 +53,34 @@ exports.addDoctor = (req, res, next) => {
 };
 
 exports.fetchAllDoctors = (req, res, next) => {
-
     try {
-        doctor.find({}, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.send(data);
+        doctor.find({}).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'doctors not found!!' });
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result);
+                    res.send(result);
                 }
-            }
-        }).catch(error => {
-            console.log(error);
-            res.send(error);
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }
 }
 
 exports.findRecord = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        doctor.findOne({ _id: req.body.id }, (error, data) => {
+        doctor.findOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
-            } else {
+            } else if (data) {
                 console.log(data)
                 imagePath = data.dp;
                 let image = fs.readFileSync(imagePath);
@@ -105,9 +98,9 @@ exports.findRecord = (req, res, next) => {
 };
 
 exports.deleteRecord = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        doctor.deleteOne({ _id: req.body.id }, (error, data) => {
+        doctor.deleteOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
@@ -161,5 +154,67 @@ exports.updateRecord = (req, res, next) => {
             })
     } catch (error) {
         console.log(error);
+    }
+};
+
+exports.updateProfile = (req, res, next) => {
+    console.log('req body for update profile: ', req.body);
+    if (!req.file) {
+        try {
+            doctor.findOne({ _id: req.body.id })
+                .then(user => {
+                    req.body.email ? user.email = req.body.email : null
+                    req.body.contactNo ? user.contactNo = req.body.contactNo : null
+                    req.body.password ? user.password = req.body.password : null
+                    user
+                        .save()
+                        .then(async result => {
+                            result.password = undefined
+                            console.log('result: ', result)
+                            result.dp = await fs.readFileSync(result.dp).toString('base64');
+                            res.status(200).json({ userInfo: result, message: 'Profile Updated Successfully!!' });
+                        }).catch(error => {
+                            console.log(error);
+                            res.status(200).json({ error: 'Profile Could Not Be Updated!!' });
+                        })
+                }).catch(error => {
+                    console.log(error);
+                    res.send({ error: 'Profile Could Not Be Updated!!' });
+                })
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    else {
+        console.log('?')
+        console.log(req.file.path);
+        console.log('before: ' + req.body.dp)
+        req.body.dp = 'images/doctorsDp/' + req.file.originalname;
+        console.log('after: ' + req.body.dp)
+        try {
+            doctor.findOne({ _id: req.body.id })
+                .then(user => {
+                    req.body.email ? user.email = req.body.email : null
+                    req.body.contactNo ? user.contactNo = req.body.contactNo : null
+                    req.body.password ? user.password = req.body.password : null
+                    user.dp = req.body.dp;
+                    user
+                        .save()
+                        .then(async result => {
+                            result.password = undefined
+                            console.log('result: ', result)
+                            result.dp = await fs.readFileSync(result.dp).toString('base64');
+                            res.status(200).json({ userInfo: result, message: 'Profile Updated Successfully!!' });
+                        }).catch(error => {
+                            console.log(error);
+                            res.status(200).json({ error: 'Profile Could Not Be Updated!!' });
+                        })
+                }).catch(error => {
+                    console.log('catch error: ', error);
+                    res.send({ error: error });
+                })
+        } catch (error) {
+            console.log(error);
+        }
     }
 };

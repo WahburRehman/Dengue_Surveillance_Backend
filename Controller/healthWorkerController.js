@@ -1,8 +1,15 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const healthWorker = mongoose.model('healthWorker');
+require('dotenv').config()
 
 const sendMail = require('../MiddleWares/sendMail');
+
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require('twilio')(accountSid, authToken);
+
 
 
 exports.addHealthWorker = (req, res, next) => {
@@ -55,41 +62,35 @@ exports.addHealthWorker = (req, res, next) => {
 }
 
 exports.fetchAllHealthWorkers = (req, res, next) => {
-
     try {
-        healthWorker.find({}, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.send(data);
+        healthWorker.find({}).sort({ _id: -1 })
+            .then(async result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'healthWorkers not found!!' });
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result);
+                    res.send(result);
                 }
-            }
-        }).catch(error => {
-            console.log(error);
-            res.send(error);
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }
 };
 
 exports.findRecord = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     let imagePath = null;
     try {
-        healthWorker.findOne({ _id: req.body.id }, (error, data) => {
+        healthWorker.findOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
-            } else {
+            } else if (data) {
                 console.log(data)
                 imagePath = data.dp;
                 let image = null
@@ -109,9 +110,9 @@ exports.findRecord = (req, res, next) => {
 };
 
 exports.deleteRecord = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        healthWorker.deleteOne({ _id: req.body.id }, (error, data) => {
+        healthWorker.deleteOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
@@ -184,9 +185,9 @@ exports.updateProfile = (req, res, next) => {
                     req.body.password ? user.password = req.body.password : null;
                     user
                         .save()
-                        .then(result => {
-                            console.log('result: ', result)
-                            res.status(200).json({ message: 'Data Updated Successfully!!' });
+                        .then(async (data) => {
+                            data.dp = await fs.readFileSync(data.dp).toString('base64');
+                            res.status(200).json({ message: 'Data Updated Successfully!!', data });
                         }).catch(error => {
                             console.log(error);
                             res.status(200).json({ error: 'Data Could Not Be Updated!!' });
@@ -228,5 +229,25 @@ exports.updateProfile = (req, res, next) => {
         } catch (error) {
             console.log(error);
         }
+    }
+};
+
+
+
+exports.sendSMS = (req, res, next) => {
+    try {
+        let recipients = req.body.recipients
+        console.log(recipients)
+        // recipients.forEach(number => {
+        //     var message = client.messages.create({
+        //         body: req.body.campaignMessage,
+        //         from: '+17278003654',
+        //         to: number
+        //     })
+        //         .then(message => console.log(message))
+        //         .catch(error => console.log(error));
+        // });
+    } catch (error) {
+        console.log(error);
     }
 };

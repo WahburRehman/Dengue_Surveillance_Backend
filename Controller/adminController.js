@@ -55,14 +55,14 @@ exports.addAdmin = (req, res, next) => {
     }
 }
 
-exports.findRecord = (req, res, next) => {
-    console.log(req.body.userName);
+exports.findRecord = (req, res, id) => {
+    console.log(req.body.id);
     try {
-        admin.findOne({ userName: req.body.userName.toUpperCase() }, (error, data) => {
+        admin.findOne({ _id: id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
-            } else {
+            } else if (data) {
                 console.log(data)
                 imagePath = data.dp;
                 let image = fs.readFileSync(imagePath);
@@ -79,30 +79,29 @@ exports.findRecord = (req, res, next) => {
     }
 };
 
-
-exports.updateRecord = (req, res, next) => {
-    //$2b$10$6eyvlsBvbu/OypBb95mKs.62k38pnrAe/Hb8AyHyDqgP2gXKVqcky
-    //$2b$10$3szsLk5CZ6/7NGrakoP/Ye9GXTAq/oqK1mBUz12E6W2JxR9OzCrYa
-    // console.log(req.body);
+exports.updateProfile = (req, res, next) => {
+    console.log('req body for update profile: ', req.body);
     if (!req.file) {
         try {
-            admin.findOne({ userName: req.body.userName.toUpperCase() })
+            admin.findOne({ _id: req.body.id })
                 .then(user => {
-                    user.contactNo = req.body.contactNo;
-                    user.email = req.body.email;
-                    user.password = req.body.password;
+                    req.body.email ? user.email = req.body.email : null
+                    req.body.contactNo ? user.contactNo = req.body.contactNo : null
+                    req.body.password ? user.password = req.body.password : null
                     user
                         .save()
-                        .then(result => {
+                        .then(async result => {
+                            result.password = undefined
                             console.log('result: ', result)
-                            res.status(200).json({ message: 'Data Updated Successfully!!' });
+                            result.dp = await fs.readFileSync(result.dp).toString('base64');
+                            res.status(200).json({ userInfo: result, message: 'Profile Updated Successfully!!' });
                         }).catch(error => {
                             console.log(error);
-                            res.status(200).json({ error: 'Data Could Not Be Updated!!' });
+                            res.status(200).json({ error: 'Profile Could Not Be Updated!!' });
                         })
                 }).catch(error => {
                     console.log(error);
-                    res.send(error);
+                    res.send({ error: 'Profile Could Not Be Updated!!' });
                 })
         } catch (error) {
             console.log(error);
@@ -115,27 +114,26 @@ exports.updateRecord = (req, res, next) => {
         req.body.dp = 'images/adminDp/' + req.file.originalname;
         console.log('after: ' + req.body.dp)
         try {
-            admin.findOne({ userName: req.body.userName.toUpperCase() })
+            admin.findOne({ _id: req.body.id })
                 .then(user => {
-                    user.contactNo = req.body.contactNo;
-                    user.email = req.body.email;
-                    user.password = req.body.password;
+                    req.body.email ? user.email = req.body.email : null
+                    req.body.contactNo ? user.contactNo = req.body.contactNo : null
+                    req.body.password ? user.password = req.body.password : null
                     user.dp = req.body.dp;
                     user
                         .save()
-                        .then(result => {
-                            if(e){
-
-                            }
+                        .then(async result => {
+                            result.password = undefined
                             console.log('result: ', result)
-                            res.status(200).json({ message: 'Data Updated Successfully!!' });
+                            result.dp = await fs.readFileSync(result.dp).toString('base64');
+                            res.status(200).json({ userInfo: result, message: 'Profile Updated Successfully!!' });
                         }).catch(error => {
                             console.log(error);
-                            res.status(200).json({ error: 'Data Could Not Be Updated!!' });
+                            res.status(200).json({ error: 'Profile Could Not Be Updated!!' });
                         })
                 }).catch(error => {
-                    console.log(error);
-                    res.send(error);
+                    console.log('catch error: ', error);
+                    res.send({ error: error });
                 })
         } catch (error) {
             console.log(error);

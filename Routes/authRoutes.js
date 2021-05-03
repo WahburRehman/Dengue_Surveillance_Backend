@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 const router = express.Router();
 
 const { jwtKey } = require('../keys');
@@ -24,22 +25,30 @@ const sendMail = require('../MiddleWares/sendMail');
 router.post('/signIn', async (req, res) => {
     const { userName, password, actor } = req.body;
 
-
-    console.log(req.body);
-    console.log(password);
-    console.log(actor);
+    console.log('req body: ', req.body);
     const role = mongoose.model(actor);
     if (!userName || !password) {
         return res.send({ error: "Must Provide UserName & Password!!" });
     }
-    const user = await role.findOne({ userName });
+    const user = await role.findOne({ userName: userName.toUpperCase() });
+    // console.log('user: ', user)
     if (!user) {
         return res.send({ error: "Enter Valid UserName or Password!!" });
     }
     try {
         await user.comparePassword(password);
         const token = jwt.sign({ userId: user._id }, jwtKey);
-        res.send({ token });
+        console.log('token: ', token);
+        role.findOne({ userName: userName.toUpperCase() }, { password: 0 }, async (error, data) => {
+            if (error) {
+                console.log(error);
+            }
+            else if (data) {
+                console.log('data', data);
+                data.dp = await fs.readFileSync(data.dp).toString('base64');
+                res.json({ token, data });
+            }
+        });
     } catch (error) {
         return res.send({ error: "Enter Valid UserName or Password!!" });
     }
@@ -53,7 +62,7 @@ router.post('/resetPassword', (req, res) => {
 
     if (role === "admin") {
         actor = mongoose.model('admin');
-    } else if (role === "doctor") {
+    } else if (role === "Doctors") {
         actor = mongoose.model('doctor');
     } else if (role === 'healthWorker') {
         actor = mongoose.model('healthWorker');

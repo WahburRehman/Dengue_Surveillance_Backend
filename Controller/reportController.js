@@ -33,43 +33,39 @@ exports.addReport = (req, res, next) => {
 
 
 exports.fetchAllReports = (req, res, next) => {
-
     console.log(req.body)
     try {
-        report.find({ reportStatus: req.body.reportStatus }, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.send(data);
+        report.find({}).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'reports not found!!' });
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result);
+                    res.send(result);
                 }
-            }
-        }).catch(error => {
-            console.log(error);
-            res.send(error);
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }
 }
 
 exports.findReport = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        report.findOne({ _id: req.body.id }, (error, data) => {
+        report.findOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
-            } else {
+            } else if (data) {
                 console.log(data)
                 res.send(data);
+            } else {
+                res.send({ error: 'Report Not Found!!' });
             }
         }).catch(error => {
             console.log(error);
@@ -81,9 +77,9 @@ exports.findReport = (req, res, next) => {
 };
 
 exports.deleteReport = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        report.deleteOne({ _id: req.body.id }, (error, data) => {
+        report.deleteOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.json({ error: error });
@@ -133,10 +129,6 @@ exports.updateReport = (req, res, next) => {
 
 exports.reportReply = (req, res, next) => {
     console.log('req body: ' + req.body);
-    console.log('req id: ' + req.body.reporterID);
-    console.log('req role: ' + req.body.reporterRole);
-    console.log('req subject: ' + req.body.subject);
-    console.log('req message: ' + req.body.message);
     let role = req.body.reporterRole
 
     let actor = '';
@@ -158,11 +150,27 @@ exports.reportReply = (req, res, next) => {
             .then(data => {
                 if (data) {
                     console.log(data);
-                    sendMail.sendMail(data.email, req.body.message, req.body.subject);
-                    res.json({ message: "Reply Sent Successfully!!" });
+                    sendMail.sendMail(data.email, req.body.message, req.body.subject)
+                    report.findOne({ _id: req.body.reportID })
+                        .then(result => {
+                            if (result) {
+                                result.reportStatus = req.body.reportStatus
+                                result
+                                    .save()
+                                    .then(result => {
+                                        console.log(result)
+                                        res.send({ message: 'Reply Has Been Sent Successfully!!' });
+                                    }).catch(error => {
+                                        console.log(error);
+                                        res.send({ message: 'Reply Could Not Be Sent!!' });
+                                    })
+                            }
+                        }).catch(error => {
+                            console.log(error);
+                        });
                 }
                 else {
-                    res.json({ error: "Reply could not be sent!!" });
+                    res.json({ error: "Reporter Not Found!!" });
                 }
             })
             .catch(error => {
@@ -174,28 +182,23 @@ exports.reportReply = (req, res, next) => {
 };
 
 exports.fetchSpecificReports = (req, res, next) => {
-    console.log(req.body)
+    console.log(req.query)
     try {
 
-        report.find({ reporterID: req.body.reporterID, reportStatus: req.body.reportStatus }, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else if (data) {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.json({ message: "No Records Found!!" });
+        report.find({ reporterID: req.query.reporterID }).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'complaints not found!!' });
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result);
+                    res.send(result);
                 }
-            }
-        }).catch(error => {
-            console.log(error);
-            res.send(error);
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }

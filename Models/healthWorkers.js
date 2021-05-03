@@ -86,10 +86,12 @@ healthWorkersSchema.methods.comparePassword = function (candidatePassword) {
         const user = this;
         bcrypt.compare(candidatePassword, user.password, (error, isMatch) => {
             if (error) {
+                console.log('1st: ', error);
                 return reject(error)
             }
             if (!isMatch) {
-                return reject(error)
+                console.log('2nd: ', error);
+                return reject(error);
             }
             resolve(true);
         });

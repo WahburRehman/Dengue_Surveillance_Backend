@@ -33,43 +33,38 @@ exports.addRequest = (req, res, next) => {
 
 
 exports.fetchAllRequests = (req, res, next) => {
-
-    console.log(req.body)
     try {
-        request.find({ requestStatus: req.body.requestStatus }, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.send(data);
+        request.find({}).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'requests not found!!' });
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result);
+                    res.send(result);
                 }
-            }
-        }).catch(error => {
-            console.log(error);
-            res.send(error);
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }
 }
 
 exports.findRequest = (req, res, next) => {
-    console.log('request id: ', req.body.id);
+    console.log('request id: ', req.query.id);
     try {
-        request.findOne({ _id: req.body.id }, (error, data) => {
+        request.findOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.json({ error: error });
             } else if (data) {
                 console.log(data)
                 res.send(data);
+            } else {
+                res.send({ error: 'Request Not Found!!' });
             }
         }).catch(error => {
             console.log(error);
@@ -81,9 +76,9 @@ exports.findRequest = (req, res, next) => {
 };
 
 exports.deleteRequest = (req, res, next) => {
-    console.log(req.body.id);
+    console.log(req.query.id);
     try {
-        request.deleteOne({ _id: req.body.id }, (error, data) => {
+        request.deleteOne({ _id: req.query.id }, (error, data) => {
             if (error) {
                 console.log(error);
                 res.json({ error: error });
@@ -132,21 +127,29 @@ exports.updateRequest = (req, res, next) => {
 
 exports.requestReply = (req, res, next) => {
     console.log('req body: ' + req.body);
-    console.log('req id: ' + req.body.reporterID);
-    console.log('req subject: ' + req.body.subject);
-    console.log('req message: ' + req.body.message);
-
-    // 6059142e97ab942584075528
-
-    //605915ef97ab942584075529
-
     try {
         healthWorker.findOne({ _id: req.body.reporterID })
             .then(data => {
                 if (data) {
                     console.log(data);
                     sendMail.sendMail(data.email, req.body.message, req.body.subject);
-                    res.json({ message: "Reply Sent Successfully!!" });
+                    request.findOne({ _id: req.body.reportID })
+                        .then(result => {
+                            if (result) {
+                                result.requestStatus = req.body.reportStatus
+                                result
+                                    .save()
+                                    .then(result => {
+                                        console.log(result)
+                                        res.send({ message: 'Reply Has Been Sent Successfully!!' });
+                                    }).catch(error => {
+                                        console.log(error);
+                                        res.send({ message: 'Reply Could Not Be Sent!!' });
+                                    })
+                            }
+                        }).catch(error => {
+                            console.log(error);
+                        });
                 }
                 else {
                     res.json({ error: "Reply could not be sent!!" });
@@ -161,28 +164,23 @@ exports.requestReply = (req, res, next) => {
 };
 
 exports.fetchSpecificRequests = (req, res, next) => {
-    console.log(req.body)
+    console.log(req.query)
     try {
 
-        request.find({ requesterID: req.body.requesterID, requestStatus: req.body.requestStatus }, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else if (data) {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.json({ message: "No Records Found!!" });
+        request.find({ requesterID: req.query.requesterID }).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send({ message: 'requests not found!!' });
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result);
+                    res.send(result);
                 }
-            }
-        }).catch(error => {
-            console.log(error);
-            res.send(error);
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }

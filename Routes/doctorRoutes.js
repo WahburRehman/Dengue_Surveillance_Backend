@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-
+const verifyAdminToken = require('../MiddleWares/verifyAdminToken');
+const verifyDoctorToken = require('../MiddleWares/verifyDoctorToken');
 const doctorController = require('../Controller/doctorController');
 
 const multer = require('multer');
@@ -15,12 +16,14 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-router.post('/addDoctor', doctorController.addDoctor);
-router.get('/fetchAllDoctors', doctorController.fetchAllDoctors);
-router.post('/findOneDoctorsRecord', doctorController.findRecord);
-router.delete('/deleteOneDoctorsRecord', doctorController.deleteRecord);
-router.put('/updateOneDoctorsRecord', doctorController.updateRecord);
+router.post('/addDoctor', verifyAdminToken(), doctorController.addDoctor);
+router.get('/fetchAllDoctors', verifyAdminToken(), doctorController.fetchAllDoctors);
+router.get('/findOneDoctorsRecord?:id', verifyAdminToken(), doctorController.findRecord);
+router.delete('/deleteOneDoctorsRecord?:id', verifyAdminToken(), doctorController.deleteRecord);
+router.put('/updateOneDoctorsRecord', verifyAdminToken(), doctorController.updateRecord);
+router.put('/updateDoctorProfile', verifyDoctorToken(), upload.single("dp"), doctorController.updateProfile);
+
 
 module.exports = router;

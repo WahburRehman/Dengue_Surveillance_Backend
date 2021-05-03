@@ -58,6 +58,12 @@ const patient = new mongoose.Schema({
     symptomsImage: {
         type: String,
     },
+    doctorResponse: {
+        type: String,
+    },
+    responsedBy: {
+        type: String,
+    },
     date: {
         type: String
     }

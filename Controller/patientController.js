@@ -39,18 +39,18 @@ exports.addPatient = (req, res, next) => {
                             addPatient
                                 .save()
                                 .then(result => {
-                                    console.log(result)
-                                    res.status(200).json({
+                                    console.log('result: ', result)
+                                    res.send({
                                         message: 'Patient Added Successfully!!',
                                         caseID: caseID
                                     });
                                 }).catch(error => {
                                     console.log(error)
-                                    res.status(400).json({ error: 'error' });
+                                    res.send({ error: 'error' });
                                 });
                         } catch (error) {
                             console.log(error)
-                            res.status(500).json({ error: error });
+                            res.status(500).json({ error: 'catch error' });
                         }
                     }
                     else {
@@ -79,17 +79,17 @@ exports.addPatient = (req, res, next) => {
                                 .save()
                                 .then(result => {
                                     console.log(result)
-                                    res.status(200).json({
+                                    res.send({
                                         message: 'Patient Added Successfully!!',
                                         caseID: caseID
                                     });
                                 }).catch(error => {
                                     console.log(error)
-                                    res.status(400).json({ error: 'error' });
+                                    res.send({ error: 'error' });
                                 });
                         } catch (error) {
                             console.log(error)
-                            res.status(500).json({ error: error });
+                            res.send({ error: 'catch error' });
                         }
                     }
                 }
@@ -103,44 +103,62 @@ exports.addPatient = (req, res, next) => {
 }
 
 exports.fetchAllPatients = (req, res, next) => {
-    console.log(req.body);
-    let obj = { recommendedBy: req.body.recommendedBy };
+    console.log(req.query);
     try {
-        if (req.body.selectedOption !== 'all') {
-            obj = {
-                recommendedBy: req.body.recommendedBy,
-                dengueStatus: req.body.selectedOption
-            }
-        }
-        console.log('obj: ', obj);
-        patient.find(obj, (error, data) => {
-            if (error) {
-                console.log(error);
-                return res.json({ error: error });
-            }
-            else {
-                if (data.length === 0) {
-                    console.log('data length', data.length);
-                    res.send(data);
+        patient.find({ recommendedBy: req.query.recommendedBy }).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send(result);
                 }
                 else {
-                    console.log(data);
-                    res.send(data);
+                    console.log(result.length);
+                    let newResult = result.map(item => {
+                        if (item.symptomsImage) {
+                            item.symptomsImage = fs.readFileSync(item.symptomsImage).toString('base64');
+                            return item
+                        } else {
+                            return item
+                        }
+                    })
+                    console.log(newResult[0]);
+                    res.send(newResult);
                 }
-            }
-        }).catch(error => {
-            console.log(error)
-            res.status(400).json({ error: 'error' });
-        })
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.fetchSpecificHospitalPatients = (req, res, next) => {
+    console.log(req.query);
+    try {
+        patient.find({ recommendedHospital: req.query.recommendedHospital.toUpperCase() }).sort({ _id: -1 })
+            .then(result => {
+                if (result.length === 0) {
+                    console.log('data length', result.length);
+                    res.send(result);
+                }
+                else {
+                    console.log(result);
+                    res.send(result);
+                }
+            }).catch(error => {
+                console.log(error)
+                res.status(400).json({ error: 'error' });
+            });
     } catch (error) {
         console.log(error);
     }
 };
 
 exports.fetchSpecificCurrentCases = (req, res, next) => {
-    console.log('req body: ', req.body);
+    console.log('req body: ', req.query);
     try {
-        patient.find({ recommendedHospital: req.body.hospital }, (error, data) => {
+        patient.find({ recommendedHospital: req.query.recommendedHospital.toUpperCase() }, (error, data) => {
             if (error) {
                 console.log(error);
                 return res.json({ error: error });
@@ -165,15 +183,37 @@ exports.fetchSpecificCurrentCases = (req, res, next) => {
 };
 
 exports.findRecord = (req, res, next) => {
-    console.log(req.body.userName);
+    console.log(req.query);
     try {
-        patient.findOne({ userName: req.body.userName }, (error, data) => {
+        patient.findOne({ _id: req.query.id }, async (error, data) => {
             if (error) {
                 console.log(error);
                 res.send(error);
+            } else if (data) {
+                console.log(data)
+                if (data.symptomsImage) {
+                    data.symptomsImage = await fs.readFileSync(data.symptomsImage).toString('base64');
+                }
+                res.send(data);
+            }
+        }).catch(error => {
+            console.log('catch error: ', error)
+        })
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.deleteRecord = (req, res, next) => {
+    console.log(req.query);
+    try {
+        patient.deleteOne({ _id: req.query.patientID}, (error, data) => {
+            if (error) {
+                console.log(error);
+                res.send({ error: 'Record Could not be deleted' });
             } else {
                 console.log(data)
-                res.send(data);
+                res.json({ message: 'record deleted Successfully' });
             }
         });
     } catch (error) {
@@ -181,18 +221,28 @@ exports.findRecord = (req, res, next) => {
     }
 };
 
-exports.deleteRecord = (req, res, next) => {
-    console.log(req.body.userName);
+exports.updateRecord = (req, res, next) => {
+    console.log('req body: ', req.body);
     try {
-        patient.deleteOne({ userName: req.body.userName }, (error, data) => {
-            if (error) {
+        patient.findOne({ _id: req.body.patientID })
+            .then(user => {
+                user.dengueStatus = req.body.dengueStatus
+                user.doctorResponse = req.body.doctorResponse
+                user.respondedBy = req.body.respondedBy
+                user.caseStatus = req.body.caseStatus
+                user
+                    .save()
+                    .then(result => {
+                        console.log('result: ', result)
+                        res.status(200).json({ message: 'Response Has Been Sent Successfully!!' });
+                    }).catch(error => {
+                        console.log(error);
+                        res.status(400).json({ error: 'Response Could Not Be Sent!!' });
+                    })
+            }).catch(error => {
                 console.log(error);
-                res.send(error);
-            } else {
-                console.log(data)
-                res.json({ message: 'record deleted Successfully' });
-            }
-        });
+                res.status(400).json({ error: error });
+            })
     } catch (error) {
         console.log(error);
     }

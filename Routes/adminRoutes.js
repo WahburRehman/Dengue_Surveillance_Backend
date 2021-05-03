@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+const verifyAdminToken = require('../MiddleWares/verifyAdminToken');
 const adminController = require('../Controller/adminController');
 
 const multer = require('multer');
@@ -15,10 +15,10 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ dest: '/images/adminDp/' });
+const upload = multer({ storage });
 
 router.post('/addAdmin', adminController.addAdmin);
 router.post('/findOneAdminsRecord', adminController.findRecord);
-router.put('/updateOneAdminRecord', upload.single("dp"), adminController.updateRecord);
+router.put('/updateAdminProfile', verifyAdminToken(), upload.single("dp"), adminController.updateProfile);
 
 module.exports = router;

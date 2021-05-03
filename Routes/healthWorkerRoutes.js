@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-
+const verifyAdminToken = require('../MiddleWares/verifyAdminToken');
+const verifyHealthWorkerToken = require('../MiddleWares/verifyHealthWorkerToken');
 const healthWorkerController = require('../Controller/healthWorkerController');
 
 
@@ -16,11 +17,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post('/addHealthWorker', healthWorkerController.addHealthWorker);
-router.get('/fetchAllHealthWorkers', healthWorkerController.fetchAllHealthWorkers);
-router.post('/findOneHealthWorkersRecord', healthWorkerController.findRecord);
-router.delete('/deleteOneHealthWorkersRecord', healthWorkerController.deleteRecord);
-router.put('/updateOneHealthWorkersRecord', healthWorkerController.updateRecord);
-router.put('/updateHealthWorkerProfile', upload.single("dp"), healthWorkerController.updateProfile);
+router.post('/addHealthWorker', verifyAdminToken(), healthWorkerController.addHealthWorker);
+router.get('/fetchAllHealthWorkers', verifyAdminToken(), healthWorkerController.fetchAllHealthWorkers);
+router.get('/findOneHealthWorkersRecord?:id', verifyAdminToken(), healthWorkerController.findRecord);
+router.delete('/deleteOneHealthWorkersRecord?:id', verifyAdminToken(), healthWorkerController.deleteRecord);
+router.put('/updateOneHealthWorkersRecord', verifyAdminToken(), healthWorkerController.updateRecord);
+router.put('/updateHealthWorkerProfile', verifyHealthWorkerToken(), upload.single("dp"), healthWorkerController.updateProfile);
+router.post('/sendSMS', verifyHealthWorkerToken(), healthWorkerController.sendSMS);
 
 module.exports = router;
